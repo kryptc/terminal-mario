@@ -73,9 +73,10 @@ def scoreAlgo(kills, time, coins):
 # 11 - Mario
 # 12 - mushroom minion
 # 13 - high orc
-# 22 - dying mushroom minion
-# 23 - dying high orc
 
+# 50,51,52,53,60,61 - metadata stuff
+# 80,81,82 - flag specs
+# 90,91,92 - castle specs
 
 #testing
 
@@ -86,11 +87,5 @@ if __name__ == "__main__":
     ch = getchar()
     print ('You pressed')
     print(ch)
-    if(ch == 'w'):
-        print ("oui")
     if(ch=='q'):
         exit(0)
-    print ("press any key")
-    ch = getchar()
-    print ('You pressed')
-    print(ch)

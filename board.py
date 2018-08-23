@@ -2,13 +2,6 @@ import config
 from scene import *
 from objects import *
 
-#map creation
-
-map_height = config.rows
-map_length = 190 * 4
-
-map_col_blocks = 190
-map_row_blocks = int(int(map_height)/3) 
 
 mario_start_col = 2
 mario_start_row = minGroundHeight
@@ -42,7 +35,10 @@ pipe_heights = [0,1,2,1,1,2]
 shroom_spawn_list = [15,37,43,52,59,69,70,100,97,133,142,146,148]
 shroom_row = [0,0,0,4,5,0,0,0,3,0,0,5,0]
 
-orc_spawn_list = [164,160]
+orc_spawn_list = [160]
+
+castle_col_coord = [179,180,181,182,183]
+castle_row_coord = [0,1,2]
 
 def draw_scenery():
     try:
@@ -72,6 +68,7 @@ def generate_map():
     create_bricks(bricks_row_list, bricks_col_list)
     create_mysteryBricks(mystery_row_list, mystery_col_list)
     create_pipes(pipe_list, pipe_heights)
+    build_castle(castle_row_coord, castle_col_coord)
 
 
 def print_matrix(col_range_beg, col_range_end, score, lives, timer):
@@ -171,6 +168,31 @@ def print_matrix(col_range_beg, col_range_end, score, lives, timer):
                 templist1.append("    ")
                 templist2.append("    ")
                 templist3.append(Fore.WHITE + "0" + str(timer))
+
+            elif num==80:
+                templist1.append(Fore.WHITE + " || ")
+                templist2.append(Fore.WHITE + " || ")    
+                templist3.append(Fore.BLUE + "/==\\")
+            elif num==81:
+                templist1.append(Fore.YELLOW + "====")
+                templist2.append(Fore.GREEN + "++++")    
+                templist3.append(Fore.YELLOW + "====")
+            elif num==82:
+                templist1.append(Fore.WHITE + " || ")
+                templist2.append(Fore.WHITE + " || ")    
+                templist3.append(Fore.WHITE + " || ")
+            elif num==90:
+                templist1.append(Fore.MAGENTA + "\\\\\\\\")
+                templist2.append(Fore.WHITE + "////")
+                templist3.append(Fore.MAGENTA + "\\\\\\\\")
+            elif num==91:
+                templist1.append(Fore.WHITE + "#  #")
+                templist2.append(Fore.MAGENTA + "\\\\\\\\")
+                templist3.append(Fore.WHITE + "////")
+            elif num==92:
+                templist1.append("    ")
+                templist2.append(Fore.WHITE + "  //")    
+                templist3.append(Fore.MAGENTA + " \\\\")
 
 
         strings.append(templist1)

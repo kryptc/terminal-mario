@@ -1,7 +1,22 @@
-import config
-from scene import minGroundHeight, matrix
-import time
-from board import *
+from random import *
+from config import * 
+
+#map creation
+
+map_height = rows
+map_length = 190 * 4
+
+map_col_blocks = 190
+map_row_blocks = int(int(map_height)/3) 
+
+row_blocks_per = int(int(rows)/3)
+col_blocks_per = int(int(columns)/4)
+
+minGroundHeight = int(3*(row_blocks_per/4));
+minCloudHeight = int(row_blocks_per/4)
+
+
+matrix = list()
 
 
 def fillMatrix(objectType):
@@ -50,7 +65,7 @@ class Object():
         #normal cases
         try:
             # if self.checkCollision(self.row + 1, self.col) is False:
-                self.moveDown()
+                return self.moveDown()
 
         #death by canyon
         except IndexError:
@@ -58,246 +73,133 @@ class Object():
                 self.dead = 1
             else:
                 shadowMatrix(self.row, self.col)
+        return 0
 
-    def moveDown(self):
-        #kill enemies if mario drops on a shroom or an orc
-        if self.checkCollision(self.row + 1, self.col) == 2 and self.code == 11:
-            if killEnemies(self.row + 1, self.col) is True:
-                self.kills += 1
-
-        elif self.checkCollision(self.row + 1, self.col) == 0:
-            # time.sleep(0.8)
-            shadowMatrix(self.returnRow(), self.returnCol())
-            self.row += 1
-            fillMatrix(self)
-        #death by canyon
-        elif self.row > map_row_blocks - 1:
-            self.dead = 1
-
+    def jump(self):
+        pass
 
     def death(self):
         return self.dead 
 
 
-
-class Mario(Object):
-    def __init__(self, row, col, lives):
-        super().__init__(row, col)
-        self.code = 11
-        self.lives = lives
-        self.inJump = False
-        self.jumpTime = 0
-        self.kills = 0
-
-    def returnJumpStatus(self):
-        return self.inJump
-
-    def returnKills(self):
-        return self.kills
-
-    def returnLives(self):
-        return self.lives
-
-    def moveRight(self):
-        # if self.col == int(config.columns):
-        if self.col == map_col_blocks:
-            pass
-        elif self.checkCollision(self.row, self.col + 1) == 2:
-            self.dead = 1
-        elif self.checkCollision(self.row, self.col + 1) != 0:
-            pass
-        else:
-            shadowMatrix(self.returnRow(), self.returnCol())
-            self.col += 1
-            fillMatrix(self)
-        
-    
-    def moveLeft(self):
-        if self.col == 0:
-            pass
-        elif self.checkCollision(self.row, self.col - 1) == 2:
-            self.dead = 1
-        elif self.checkCollision(self.row, self.col - 1) != 0:
-            pass
-        else:
-            shadowMatrix(self.returnRow(), self.returnCol())
-            self.col -= 1
-            fillMatrix(self)
-        
-
-    def jump(self):
-        #also checks if Mario lands on any enemies
-        if self.checkCollision(self.row - 1, self.col) == 4:
-            breakBricks(self.row - 1, self.col)
-            self.inJump = False
-            self.jumpTime = 0
-
-        elif self.checkCollision(self.row - 1, self.col) != 0:
-            self.inJump = False
-            self.jumpTime = 0
-
-        elif self.jumpTime == 3:
-            self.inJump = False
-            self.jumpTime = 0
-        else:
-            shadowMatrix(self.returnRow(), self.returnCol())
-            self.inJump = True
-            self.jumpTime += 1
-            self.row -= 1
-            fillMatrix(self)
-
-    def oneLessLife(self):
-        self.lives -= 1
-
-
-class Enemies(Object):
+class Cloud(Object):
     def __init__(self, row, col):
         super().__init__(row, col)
+        self.code = 2
 
-    #both directions
-    
-    def move(self, mario_xcoord):
-        var = 0
-        if mario_xcoord > self.row:
-            #go right
-            var = 1
-        elif mario_xcoord < self.row:
-            #go left
-            var = -1
-
-        if self.checkCollision(self.row, self.col + var) == 0:
-            shadowMatrix(self.returnRow(), self.returnCol())
-            self.col += var
-            fillMatrix(self)
-
-        elif self.checkCollision(self.row, self.col + var) == 3:
-            print ("u die1")
-            return 1
-        return 0
-
-
-
-class mushroomMinion(Enemies):
+class Ground(Object):
     def __init__(self, row, col):
         super().__init__(row, col)
-        self.code = 12
+        self.code = 1
 
-
-class highOrc(Enemies):
+class Flag(Object):
     def __init__(self, row, col):
         super().__init__(row, col)
-        self.code = 13
-        self.inJump = False
-        self.jumpTime = 0
+        self.code = 81
+        self.hoist = False
 
-    def jump(self):
-        if self.checkCollision(self.row - 1, self.col) != 0:
-            self.inJump = False
-            self.jumpTime = 0
-
-        elif self.jumpTime == 3:
-            self.inJump = False
-            self.jumpTime = 0
-        else:
-            shadowMatrix(self.returnRow(), self.returnCol())
-            self.inJump = True
-            self.jumpTime += 1
-            self.row -= 1
-            fillMatrix(self)
-
-
-    def returnJumpStatus(self):
-        return self.inJump
-
-# class shadowMinion(Enemies):
-#     def __init__(self, row, col):
-#         super().__init__(row, col)
-#         self.code = 22
-
-# class shadowOrc(Enemies):
-#     def __init__(self, row, col):
-#         super().__init__(row, col)
-#         self.code = 23
-
-
-enemies = list()
-
-class Coin(Object):
-    def __init__(self, row, col):
-        super().__init__(row, col)
-        self.code = 8
-        self.appearsFor = 11
-
-    def coinLife(self):
-        self.appearsFor -= 1
-        if self.appearsFor == 0:
+    def raise_flag(self):
+        if self.checkCollision(self.row, self.col - 1) == 3 or self.hoist is True:
             shadowMatrix(self.row, self.col)
-            coins.remove(self)
-            return 1
-        return 0
-
-coins = list()
-
-
-def create_mario(x, y, lives):
-    mario = Mario(x, y, lives)
-    fillMatrix(mario)
-    return mario
+            matrix[self.row][self.col] = 82
+            self.row -= 1
+            fillMatrix(self)
+            self.hoist = True
 
 
-def create_enemies():
-    for i, pos in enumerate(shroom_spawn_list):
-        ht = shroom_row[i]
-        enemy_object = mushroomMinion(minGroundHeight - ht, pos)
-        enemies.append(enemy_object)
-
-    for pos in orc_spawn_list:
-        enemy_object = highOrc(minGroundHeight, pos)
-        enemies.append(enemy_object)
-
-    for i in range(len(enemies)):
-        enemy_object = enemies[i]
-
-        if (enemy_object.returnCode() == 12):
-            fillMatrix(enemy_object)
-
-        elif (enemy_object.returnCode() == 13):
-            fillMatrix(enemy_object)     
+class FlagPole(Object):
+    def __init__(self, row, col):
+        super().__init__(row, col)
+        self.code = 82
+ 
 
 
-def killEnemies(mrow, mcol):
-    if matrix[mrow][mcol] == 12:
-        print ("found minion")
-
-        #kill shroom
-        for enemy in enemies:
-            if enemy.returnRow() == mrow and enemy.returnCol() == mcol:
-                shadowMatrix(mrow, mcol)
-                enemies.remove(enemy)
-                return True
-
-    elif matrix[mrow][mcol] == 13:
-        print ("found orc")
-        # shadowMatrix(mrow, mcol)
-        enemy_object = mushroomMinion(mrow, mcol)
-        fillMatrix(enemy_object)
-        return True
-
-    return False
+clouds = list()
+ground = list()
 
 
-def breakBricks(row, col):
-    coin_object = Coin(row - 1, col)
-    fillMatrix(coin_object)
-    coins.append(coin_object)
+def create_ground(row_blocks, col_blocks):
+    for i in range(row_blocks):
+        templist = list()
+        for j in range(col_blocks):
+            # if(i > 11):
+            if(i > minGroundHeight):
+                templist.append(1)
+                classobject = Ground(i,j)
+                ground.append(classobject)
+            else:
+                templist.append(0)
+        matrix.append(templist)
+        
 
-    rand = randint(0,4)
-    #brick disappears
-    if rand == 0:
-        matrix[row][col] = 0
-    #brick becomes normal
-    elif rand == 1 or rand == 3:
-        matrix[row][col] = 3
-    #more mysteries to be unlocked
-    elif rand == 2:
-        matrix[row][col] = 7
+
+def create_clouds(row_blocks, col_blocks):
+    for i in range(row_blocks):
+        for j in range(col_blocks):
+            if(i in range(1, minCloudHeight)):
+                matrix[i][j] = 0
+                random_number = random.random()
+                if(random_number > 0.9):
+                    matrix[i][j] = 2
+                    classobject = Cloud(i,j)
+                    clouds.append(classobject)
+
+def create_canyons(canyon_list):
+    for i in canyon_list:
+        matrix[minGroundHeight+1][i] = 0
+        try:
+            matrix[minGroundHeight+2][i] = 0
+            matrix[minGroundHeight+3][i] = 0
+        except IndexError:
+            pass
+
+def create_cement(row_list, col_list):
+    for i, row in enumerate(row_list):
+        col = col_list[i]
+        matrix[minGroundHeight - row][col] = 4
+
+def create_bricks(row_list, col_list):
+    for i, row in enumerate(row_list):
+        col = col_list[i]
+        matrix[minGroundHeight - row][col] = 3
+
+
+def create_mysteryBricks(row_list, col_list):
+    for i, row in enumerate(row_list):
+        col = col_list[i]
+        matrix[minGroundHeight - row][col] = 7
+
+
+def create_pipes(positions, heights):
+    for i, pos in enumerate(positions):
+        ht = heights[i]
+        for j in range(ht):
+            matrix[minGroundHeight - j][pos] = 6
+        matrix[minGroundHeight - ht][pos] = 5
+
+def create_flag():
+    matrix[minGroundHeight][174] = 80
+    bandiera = Flag(minGroundHeight - 1, 174)
+    fillMatrix(bandiera)
+    for i in range(3):
+        poleObject = FlagPole(minGroundHeight -2 - i, 174)
+        fillMatrix(poleObject)
+    return bandiera
+
+
+def build_castle(castle_row_coord, castle_col_coord):
+    for i in castle_row_coord:
+        for j in castle_col_coord:
+            if i == 0:
+                matrix[minGroundHeight - i][j] = 90
+            elif i == 1:
+                matrix[minGroundHeight - i][j] = 91
+
+    matrix[minGroundHeight - 2][181] = 91
+    matrix[minGroundHeight - 2][180] = 92
+    matrix[minGroundHeight - 2][182] = 92
+    #build doorway
+    matrix[minGroundHeight][181] = 0
+
+
+
